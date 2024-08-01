@@ -22,7 +22,7 @@ def bubble_sort(lista):
             break
     return lista
 
-def gerar_numeros(qtd):
+def generate_numbers(qtd):
     return [random.randint(0, 100) for _ in range(qtd)]
 
 def main():
@@ -30,18 +30,18 @@ def main():
     try:
         x = 500
 
-        numeros = gerar_numeros(x)
-        print("Generate numbers:", numeros)
+        numbers = generate_numbers(x)
+        print("Generate numbers:", numbers)
         jarvas.change_State_App('the numbers were generated')
 
 
-        ordenados = bubble_sort(numeros)
+        sortedNum = bubble_sort(numbers)
         jarvas.change_State_App('the numbers were sorted')
-        print("Sorted numbers:", ordenados)
+        print("Sorted numbers:", sortedNum)
         jarvas.change_State_App('the application has been finalized')
 
     except ValueError:
-        print("Entrada inválida. Por favor, digite um número inteiro.")
+        jarvas.change_State_App('the application have an error!')
 
 if __name__ == "__main__":
     main()
