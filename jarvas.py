@@ -1,0 +1,157 @@
+import requests, json
+from  datetime import datetime, timedelta
+import os
+
+class Jarvas:
+    def __init__(self, url, log=1, app_name=''):
+        self.url = url
+        self.access_token = ''
+        self.log = log
+        self.name = app_name
+    #user functions
+    def viewUsers(self):
+        try:
+            response = requests.get(f"{self.url}/users/")
+            return response.json()
+        except:
+            return {'message': 'Could not establish connection' }
+
+    def SignUp(self,username: str, email: str, password: str):
+        response = requests.post(
+            f'{self.url}/users/',
+            json = {
+                'username': username,
+                'email': email,
+                'password': password,
+            },
+            )
+        if response.status_code == 201:
+            return response.json()
+        else:
+            return {'message': response.text}
+    #app functions
+    def read_apps(self):
+        response = requests.get(
+            f'{self.url}/apps/'
+        )
+        return response.json()
+    def use_app(self,name):
+        apps = self.read_apps()
+        for app in apps['apps']: 
+            if app['name'] == name:
+                self.name = name
+        return {'message': f'You are using the {self.name} app'}
+    def create_app(self, name: str, description: str, status: str):
+        self.name = name
+        if self.access_token == '':
+            return {'message' : 'you need a token access'}
+        response = requests.post(
+            f'{self.url}/apps/',
+            headers={'Authorization': f'Bearer {self.access_token}'},
+            json={
+                'name' : name,
+                'description' : description,
+                'status' : status
+            }
+        )
+        return response.json()
+    def update_app(self,new_name: str, new_description: str, new_status: str):
+        response = requests.put(
+            f'{self.url}/apps/{self.name}',
+            headers={'Authorization': f'Bearer {self.access_token}'},
+            json={
+                "name": new_name,
+                "description": new_description,
+                "status": new_status
+            },
+        )
+        app_response = response.json()
+        return app_response
+    
+    def change_State_App(self, status):
+        apps = self.read_apps()
+        for app in apps['apps']: 
+            if app['name'] == self.name:
+                response = self.update_app(
+                    new_name=self.name,
+                    new_description=app['description'],
+                    new_status=status
+                )
+                if self.log == 1:
+                    try:
+                        print("jarvas log: "+ response['detail'])
+                    except:
+                        print("jarvas log: " + status)
+                return response
+        message = f'The aplication with name {self.name} does not exist'
+        if self.log == 1:
+            print("jarvas log: " + message)
+        return {'message': message}
+
+
+
+    #Token functions   
+    def create_token(self,email: str, password: str):
+            try:
+                response = requests.post(
+                    f"{self.url}/auth/token",
+                    data={'username': email, 'password': password},
+                )
+                date_created = datetime.now()
+                date_expired = date_created + timedelta(minutes=30)
+                self.access_token = response.json()['access_token']
+                return {
+                    'access_token': response.json()['access_token'],
+                    'token_type': response.json()['token_type'],
+                    'date_created': str(date_created),
+                    'date_expired': str(date_expired)
+                }
+            except:
+                {'message': 'Could not establish connection'}
+
+    
+    def refresh_token(self,token):
+        try: 
+            response = requests.post(
+                    f'{self.url}/auth/refresh_token',
+                    headers={'Authorization': f'Bearer {token}'},
+            )
+            date_created = datetime.now()
+            date_expired = date_created + timedelta(minutes=30)
+            return {
+                    'access_token': response.json()['access_token'],
+                    'token_type': response.json()['token_type'],
+                    'date_created': str(date_created),
+                    'date_expired': str(date_expired)
+                }
+        except requests.RequestException as e:
+            return {'message': f'Could not establish connection {e}' }
+    
+    def verify_file_credentials(self,file):
+        return os.path.isfile(file)
+
+    def is_valid_token(self,file_name):
+        with open(file_name, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        data_expired_str = data.get('date_expired')
+        date_expired = datetime.fromisoformat(data_expired_str)
+        date_atual = datetime.now()
+        return date_atual < date_expired
+    
+    def create_json_file(self,dict, file_name='credentials.json'):
+        with open(file_name, 'w', encoding='utf-8') as file:
+            json.dump(dict, file, ensure_ascii=False, indent=4)
+
+    def token(self, file):
+        if self.verify_file_credentials(file):
+            if self.is_valid_token(file):
+                with open(file, 'r', encoding='utf-8') as filex:
+                    data = json.load(filex)
+                new_credentials = self.refresh_token(data.get('access_token'))
+                self.access_token = new_credentials['access_token']
+                self.create_json_file(new_credentials,file)
+                return {'message': 'token was regenerate '}
+            else:
+                return {'message' : 'Create a token using the create_token function! '}
+        else:
+            return {'message' : 'Create a token using the create_token function! '}

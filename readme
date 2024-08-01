@@ -1,0 +1,7 @@
+email = testerUser@gmail.com
+senha = 123
+
+A primeira execução é necessária a autenticação, após isso 
+o sistema irá funcionar apenas por token
+token_access = jarvas.create_token(email='testerUser@gmail.com',password='123')
+jarvas.create_json_file(token_access)
