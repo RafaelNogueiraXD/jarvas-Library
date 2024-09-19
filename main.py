@@ -3,8 +3,9 @@ import json
 import random
 
 jarvas = Jarvas(
-    url="http://127.0.0.1:8000",
-    app_name='bubble sort'
+    url="https://8dff-186-251-193-131.ngrok-free.app",
+    app_name='bubble sort',
+    phone="5555996852212"
 )
 file = 'credentials.json'
 jarvas.token(file)
@@ -26,22 +27,21 @@ def generate_numbers(qtd):
     return [random.randint(0, 100) for _ in range(qtd)]
 
 def main():
-    jarvas.change_State_App('started')
+    jarvas.change_state_app('started')
     try:
-        x = 500
-
-        numbers = generate_numbers(x)
-        print("Generate numbers:", numbers)
-        jarvas.change_State_App('the numbers were generated')
-
-
-        sortedNum = bubble_sort(numbers)
-        jarvas.change_State_App('the numbers were sorted')
-        print("Sorted numbers:", sortedNum)
-        jarvas.change_State_App('the application has been finalized')
+        x = 10000
+        jarvas.change_state_app('the numbers were generated')
+        sortedNum = bubble_sort(generate_numbers(x))
+        jarvas.change_state_app('the numbers were sorted \n33% of aplication to conclusion')
+        sortedNum = bubble_sort(generate_numbers(x))
+        jarvas.change_state_app('the numbers were sorted \n66% of aplication to conclusion')
+        sortedNum = bubble_sort(generate_numbers(x))
+        jarvas.change_state_app('the numbers were sorted \n99% of aplication to conclusion')
+        # print("Sorted numbers:", sortedNum)
+        jarvas.change_state_app('the application has been finalized')
 
     except ValueError:
-        jarvas.change_State_App('the application have an error!')
+        jarvas.change_state_app('the application have an error!')
 
 if __name__ == "__main__":
     main()

@@ -3,20 +3,22 @@ from  datetime import datetime, timedelta
 import os
 
 class Jarvas:
-    def __init__(self, url, log=1, app_name=''):
+    def __init__(self, url, phone, log=1, app_name='', auto_send_message=True):
         self.url = url
+        self.phone = phone
         self.access_token = ''
         self.log = log
         self.name = app_name
+        self.auto_send_message = auto_send_message
     #user functions
-    def viewUsers(self):
+    def view_users(self):
         try:
             response = requests.get(f"{self.url}/users/")
             return response.json()
         except:
             return {'message': 'Could not establish connection' }
 
-    def SignUp(self,username: str, email: str, password: str):
+    def sign_up(self,username: str, email: str, password: str):
         response = requests.post(
             f'{self.url}/users/',
             json = {
@@ -68,7 +70,7 @@ class Jarvas:
         app_response = response.json()
         return app_response
     
-    def change_State_App(self, status):
+    def change_state_app(self, status, send_message=1):
         apps = self.read_apps()
         for app in apps['apps']: 
             if app['name'] == self.name:
@@ -77,12 +79,25 @@ class Jarvas:
                     new_description=app['description'],
                     new_status=status
                 )
+                if self.auto_send_message == True and send_message == 1:
+                    responseWhatsapp = requests.post(
+                    f'{self.url}/apps/send_message/',
+                    headers={'Authorization': f'Bearer {self.access_token}'},
+                    json={
+                        "name": self.name,
+                        "phone": self.phone
+                    }
+                    )
+                
                 if self.log == 1:
                     try:
                         print("jarvas log: "+ response['detail'])
                     except:
                         print("jarvas log: " + status)
+                        print(f"whatsapp log: {responseWhatsapp}")
+
                 return response
+
         message = f'The aplication with name {self.name} does not exist'
         if self.log == 1:
             print("jarvas log: " + message)
@@ -98,7 +113,7 @@ class Jarvas:
                     data={'username': email, 'password': password},
                 )
                 date_created = datetime.now()
-                date_expired = date_created + timedelta(minutes=30)
+                date_expired = date_created + timedelta(minutes=10080)
                 self.access_token = response.json()['access_token']
                 return {
                     'access_token': response.json()['access_token'],
@@ -117,7 +132,7 @@ class Jarvas:
                     headers={'Authorization': f'Bearer {token}'},
             )
             date_created = datetime.now()
-            date_expired = date_created + timedelta(minutes=30)
+            date_expired = date_created + timedelta(minutes=10080)
             return {
                     'access_token': response.json()['access_token'],
                     'token_type': response.json()['token_type'],
