@@ -1,9 +1,10 @@
 from jarvas import Jarvas
 
 jarvas = Jarvas(
-    url="https://8dff-186-251-193-131.ngrok-free.app",
-    phone="5555996852212"
+    url="http://127.0.0.1:8000",
+    app_name='bubble sort',
+    social_media="discord"
 )
+
 token_access = jarvas.create_token(email='testerUser@gmail.com',password='123')
-jarvas.create_json_file(token_access, file_name="credentials.json")
-print(jarvas.view_users())
+jarvas.create_json_file(token_access)

@@ -3,14 +3,17 @@ from  datetime import datetime, timedelta
 import os
 
 class Jarvas:
-    def __init__(self, url, phone, log=1, app_name='', auto_send_message=True):
+    def __init__(self, url, social_media, log=1, app_name='', auto_send_message=True, discord_channel = 0):
         self.url = url
-        self.phone = phone
+        self.socia_media = social_media
+        self.phone = ''
         self.access_token = ''
         self.log = log
         self.name = app_name
         self.auto_send_message = auto_send_message
-    #user functions
+
+        self.discord_channel = discord_channel
+
     def view_users(self):
         try:
             response = requests.get(f"{self.url}/users/")
@@ -69,7 +72,26 @@ class Jarvas:
         )
         app_response = response.json()
         return app_response
-    
+
+    def send_message_discord(self):
+        response = requests.post(
+            f'{self.url}/sendMessage/discord/',  # Corrigido o endpoint
+            json={
+                "name": self.name,
+                "id_channel": self.discord_channel
+            }
+        )
+        return response
+    def send_message_whatsapp(self):
+        response = requests.post(
+            f'{self.url}/apps/send_message/',
+            headers={'Authorization': f'Bearer {self.access_token}'},
+            json={
+                "name": self.name,
+                "phone": self.phone
+            }
+        )
+        return response
     def change_state_app(self, status, send_message=1):
         apps = self.read_apps()
         for app in apps['apps']: 
@@ -80,22 +102,16 @@ class Jarvas:
                     new_status=status
                 )
                 if self.auto_send_message == True and send_message == 1:
-                    responseWhatsapp = requests.post(
-                    f'{self.url}/apps/send_message/',
-                    headers={'Authorization': f'Bearer {self.access_token}'},
-                    json={
-                        "name": self.name,
-                        "phone": self.phone
-                    }
-                    )
+                    if self.socia_media == "discord":
+                        response = self.send_message_discord()
+                    if self.socia_media == "whatsapp":
+                        response = self.send_message_whatsapp()
                 
                 if self.log == 1:
                     try:
                         print("jarvas log: "+ response['detail'])
                     except:
                         print("jarvas log: " + status)
-                        print(f"whatsapp log: {responseWhatsapp}")
-
                 return response
 
         message = f'The aplication with name {self.name} does not exist'

@@ -3,9 +3,10 @@ import json
 import random
 
 jarvas = Jarvas(
-    url="https://8dff-186-251-193-131.ngrok-free.app",
+    url="http://127.0.0.1:8000",
     app_name='bubble sort',
-    phone="5555996852212"
+    social_media="discord",
+    discord_channel= 0
 )
 file = 'credentials.json'
 jarvas.token(file)
